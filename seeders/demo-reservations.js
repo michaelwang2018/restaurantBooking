@@ -5,9 +5,11 @@ module.exports = {
     // Assuming Table ID 1 exists; adjust as necessary for your data
     await queryInterface.bulkInsert('Reservations', [{
         restaurant: "Lardo",
-        time: new Date(),
+        time: new Date('April 12, 2024 17:00:00'),
         eaters: 'John Doe, Jane Smith',
-        tableSize: 2
+        tableSize: 2,
+        createdAt: new Date(),
+        updatedAt: new Date()
     }]);
   },
 
