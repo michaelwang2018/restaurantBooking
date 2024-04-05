@@ -24,9 +24,14 @@ Which would yield the only restaurant that has endorsements for both Vegan and V
 There are many failure points for this request. 
 If an eater isn't included, the request will fail with:
 
-No eaters provided
+    No eaters provided
 
+If there are more than 6 Eaters, it will fail with:
 
+    Too many eaters. No more than 6 eaters allowed
+
+And if it fails on any of the db calls, it will reply with the thrown error message attached to the following message:
+    Failed to fetch available restaurants:
 
 ### POST /reservations
 Now to the fun part, to actually creating reservations! After retrieving your list of suitable restaurant(s), you can now make a decision on where your party will eat. This API expects to receive a body with a string representing the Eaters' names, a datetime string, and a restaurant name as a string.
@@ -41,7 +46,28 @@ Here's an example:
 
 When successful, it will return a message with your reservation id like so:
 
-Reservation created with id: 2
+    Reservation created with id: 2
+
+If you try booking a reservation with a nonexistent restaurant, you'll receive the following response:
+
+    Restaurant not found
+
+If a provided Eater isn't in the db, you'll get back:
+
+    One or more eaters not found
+
+If there's a reservation out there that one of the Eaters is also on in the overlapping 2 hours of the requested reservation, you'll get the following response:
+
+    One or more eaters have conflicting reservations
+
+If someone swooped in and took your table while you were being indecisive, you'll get the following message back when no tables are available:
+
+    No suitable table size available at your requested restaurant and time. Please try another time or restaurant.
+
+And just like the restaurant api, if the db calls or anything else fails, you'll receive an error message attached to the end of:
+
+    Failed to create Reservation with error:
+
 
 ### DELETE /reservations
 Oh no! Your plans fell through? Not to worry, as you can delete reservation through this endpoint. Throw in the reservation id you'd like cancelled, and optionally, the name of the Eater cancelling to ensure someone isn't cancelling the wrong/unauthorized reservation.
@@ -68,6 +94,11 @@ If the eater in the request isn't on the reservation, it will fail with:
 
     Eater not found in reservation. Unauthorized to delete reservation.
 
+And 3rd time's the charm, you know the drill. Unexpected errors = 
+
+    Failed to delete Reservation:
+
+
 
 ## Setup Guide
 Now, everyone's favorite thing! Setup!
@@ -87,6 +118,8 @@ The database should already be seeded with test data from the seeders folder. If
 
 For viewing & interacting with the database while testing, I'd recommend either downloading DB Browser for SQLite at https://sqlitebrowser.org/ or installing an extension into your IDE, such as the SQLite Viewer VS Code extension
 
+To run tests, run the following command:
+    npm test
 
 
 
