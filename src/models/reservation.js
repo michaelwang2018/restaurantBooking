@@ -1,4 +1,6 @@
 'use strict';
+// const sequelize = require('../db.js');
+
 const {
   Model
 } = require('sequelize');
@@ -10,18 +12,18 @@ module.exports = (sequelize, DataTypes) => {
     //     foreignKey: 'TableId',
     //     as: 'table'
     //   });
-      Reservation.belongsTo(models.Restaurant, {
-        foreignKey: 'RestaurantId',
-        as: 'restaurant'
-      });
+    //   Reservation.belongsTo(models.Restaurant, {
+    //     foreignKey: 'RestaurantId',
+    //     as: 'restaurant'
+    //   });
 
       // Define many-to-many association to Eater through a join table
-      Reservation.belongsToMany(models.Eater, {
-        through: 'ReservationEaters',
-        as: 'eaters',
-        foreignKey: 'ReservationId',
-        otherKey: 'EaterId'
-      });
+    //   Reservation.belongsToMany(models.Eater, {
+    //     through: 'ReservationEaters',
+    //     as: 'eaters',
+    //     foreignKey: 'ReservationId',
+    //     otherKey: 'EaterId'
+    //   });
 
 
     }
@@ -32,6 +34,27 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         autoIncrement: true
       },
+    restaurant: {
+      type: DataTypes.STRING,
+      references: {
+        model: 'Restaurants',
+        key: 'name',
+      }
+    },
+    eaters: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      get() {
+        return this.getDataValue('eaters').split(', ')
+      },
+      set(val) {
+        this.setDataValue('eaters', val.join(', '));
+      }
+    },
+    tableSize: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
     // TableId: {
     //   type: DataTypes.INTEGER,
     //   references: {

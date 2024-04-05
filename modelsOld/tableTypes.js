@@ -10,7 +10,9 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   TableType.init({
-    capacity: DataTypes.INTEGER,
+    two_top: DataTypes.INTEGER,
+    four_top: DataTypes.INTEGER,
+    six_top: DataTypes.INTEGER,
     RestaurantId: {
       type: DataTypes.INTEGER,
       references: {

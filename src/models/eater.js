@@ -1,4 +1,7 @@
 'use strict';
+
+// const sequelize = require('../db.js');
+
 const {
   Model
 } = require('sequelize');
@@ -12,12 +15,12 @@ module.exports = (sequelize, DataTypes) => {
       // });
 
       // Add new many-to-many association to Reservations through a join table
-      Eater.hasMany(models.Reservation, {
-        through: 'ReservationEaters',
-        as: 'reservations',
-        foreignKey: 'EaterId',
-        otherKey: 'ReservationId'
-      });
+      // Eater.hasMany(models.Reservation, {
+      //   through: 'ReservationEaters',
+      //   as: 'reservations',
+      //   foreignKey: 'EaterId',
+      //   otherKey: 'ReservationId'
+      // });
     }
   }
   Eater.init({
@@ -29,10 +32,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       get() {
-        return this.getDataValue('restrictions').split(';')
+        return this.getDataValue('restrictions').split(', ')
       },
       set(val) {
-        this.setDataValue('restrictions',val.join(';'));
+        this.setDataValue('restrictions',val.join(', '));
       }
     }
   }, {

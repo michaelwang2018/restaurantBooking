@@ -1,18 +1,38 @@
-import express from 'express';
-import apiRouter from './api';
+const express = require('express');
+const sequilize = require('./db');
+
+// import apiRouter from './api';
 
 const app = express();
 const PORT = 3000;
 
-app.use('/api', apiRouter);
+sequilize.sync().then(() => {
+  console.log('Database synced')
+})
 
-const { User } = require('./models');
+// app.use('/api', apiRouter);
 
-User.create({
-  firstName: 'Jane',
-  lastName: 'Doe',
-  email: 'jane.doe@example.com'
-});
+// const { User } = require('./models');
+
+// User.create({
+//   firstName: 'Jane',
+//   lastName: 'Doe',
+//   email: 'jane.doe@example.com'
+// });
+
+
+// const { models } = require('./models');
+
+// async function createEater() {
+//   await models.Eater.create({
+//     name: 'John Doe 2',
+//     restrictions: 'Gluten-Free, Nut-Free'
+//   });
+
+//   console.log('Eater created');
+// }
+
+// createEater();
 
 
 app.listen(PORT, () => {

@@ -1,4 +1,6 @@
 'use strict';
+// const sequelize = require('../db.js');
+
 const {
   Model
 } = require('sequelize');
@@ -31,10 +33,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       get() {
-        return this.getDataValue('endorsements').split(';')
+        return this.getDataValue('endorsements').split(', ')
       },
       set(val) {
-        this.setDataValue('endorsements', val.join(';'));
+        this.setDataValue('endorsements', val.join(', '));
       }
     },
     two_top: DataTypes.INTEGER,
