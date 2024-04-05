@@ -88,61 +88,123 @@ app.delete('/reservations', async (req, res) => {
 });
 
 app.get('/restaurants', async (req, res) => {
-    // null check to ensure that the request has eaters
-    if (req.body.eaters === null || req.body.eaters.length < 1) {
-        res.status(400).send('No eaters provided');
-    }
-    const eaterNames = req.body.eaters.split(', ');
-
-    if (eaterNames.length > 6) {
-        // throw an error if there are too many eaters
-    }
-
-    // get the restrictions from the people in the request
-    const eaters = await Eater.findAll({
-        where: {
-            name:{
-                [Op.or]: eaterNames.map(eater => ({
-                    [Op.like]: `${eater}`
-                  }))
-            }
+    try {
+        // null check to ensure that the request has eaters
+        if (req.body.eaters === null || req.body.eaters.length < 1) {
+            res.status(400).send('No eaters provided');
         }
-    });
+        const eaterNames = req.body.eaters.split(', ');
+        const partySize = eaterNames.length;
 
-    const allRestrictions = eaters.flatMap(eater => eater.restrictions.split(", ")).filter(restriction => restriction !== "");
-    const endorsements = Array.from(new Set(allRestrictions));
-
-    // find the restaurants that have endorsements for those restrictions
-    const restaurants = await Restaurant.findAll({
-        limit: 10,
-        where: {
-            endorsements: {
-                // [Op.like]: '%' + req.query.endorsements + '%'
-                [Op.and]: endorsements.map(endorsement => ({
-                    [Op.like]: `%${endorsement}%`
-                  }))
-            }
+        if (eaterNames.length > 6) {
+            // throw an error if there are too many eaters
         }
-    });
 
-    // retrieve the reservations for those restaurants that overlap with the time
-    const reservations = await Reservation.findAll({
-        where: {
-            restaurant: {
-                [Op.in]: restaurants // Filter reservations by restaurant names
-            },
-            time: {
-                [Op.and]: {
-                    [Op.gte]: new Date(targetTime - twoHours), // 2 hours before the target time
-                    [Op.lte]: new Date(targetTime + twoHours) // 2 hours after the target time
+        // get the restrictions from the people in the request
+        const eaters = await Eater.findAll({
+            where: {
+                name:{
+                    [Op.or]: eaterNames.map(eater => ({
+                        [Op.like]: `${eater}`
+                    }))
                 }
             }
+        });
+
+        const allRestrictions = eaters.flatMap(eater => eater.restrictions.split(", ")).filter(restriction => restriction !== "");
+        const endorsements = Array.from(new Set(allRestrictions));
+
+        // find the restaurants that have endorsements for those restrictions
+        const restaurants = await Restaurant.findAll({
+            limit: 10,
+            where: {
+                endorsements: {
+                    // [Op.like]: '%' + req.query.endorsements + '%'
+                    [Op.and]: endorsements.map(endorsement => ({
+                        [Op.like]: `%${endorsement}%`
+                    }))
+                }
+            }
+        });
+
+        const restaurantNames = restaurants.map(restaurant => restaurant.name)
+
+        const targetTime = new Date(req.body.time);
+        const twoHours = 2 * 60 * 60 * 1000; // Two hours in milliseconds
+
+        // retrieve the reservations for those restaurants that overlap with the time
+        const reservations = await Reservation.findAll({
+            where: {
+                restaurant: {
+                    [Op.in]: restaurantNames // Filter reservations by restaurant names
+                },
+                time: {
+                    [Op.and]: {
+                        [Op.gte]: new Date(targetTime - twoHours), // 2 hours before the target time
+                        [Op.lte]: new Date(targetTime + twoHours) // 2 hours after the target time
+                    }
+                }
+            }
+        });
+
+        const availableRestaurants = countAvailableRestaurants(reservations, restaurants, partySize);
+
+        // return the restaurants that have availability
+        res.json(availableRestaurants);
+    }
+    catch {
+        res.status(400).send('Fetching available restaurants failed due to: ' + error.message);
+    }
+});
+
+// Helper function to count reservations by restaurant and table size. Uses a Map for efficient lookups, but a bit overkill for smaller datasets
+function countReservationsWithMap(reservations) {
+    const restaurantMap = new Map();
+
+    reservations.forEach(({ restaurant, tableSize }) => {
+        if (!restaurantMap.has(restaurant)) {
+            restaurantMap.set(restaurant, new Map());
         }
+        const tableMap = restaurantMap.get(restaurant);
+        const currentCount = tableMap.get(tableSize) || 0;
+        tableMap.set(tableSize, currentCount + 1);
     });
 
-    // return the restaurants that have availability
-    res.json(restaurants);
-});
+    // Optionally convert to an array of objects for easier consumption
+    const result = [];
+    restaurantMap.forEach((tableMap, restaurant) => {
+        tableMap.forEach((count, tableSize) => {
+            result.push({ restaurant, tableSize, count });
+        });
+    });
+
+    return result;
+}
+
+// Helper function to count reservations by restaurant and table size. Uses a simple object for counting, which is more straightforward for smaller datasets
+function countReservations(reservations) {
+    const countMap = {};
+
+    reservations.forEach(reservation => {
+        const key = `${reservation.restaurant}|${reservation.tableSize}`;
+        if (!countMap[key]) {
+            countMap[key] = 0;
+        }
+        countMap[key]++;
+    });
+
+    const result = [];
+    for (let key in countMap) {
+        const [restaurant, tableSize] = key.split('|');
+        result.push({
+            restaurant,
+            tableSize: parseInt(tableSize),
+            count: countMap[key]
+        });
+    }
+
+    return result;
+}
 
 app.post('/reservation', async (req, res) => {
     try {
@@ -153,6 +215,59 @@ app.post('/reservation', async (req, res) => {
         res.status(400).send('Failed to create Reservation with error: ' + error.message);
     }
 });
+
+/* function countAvailableRestaurants(reservations, restaurants, partySize) {
+    // Create a map of reservations grouped by restaurant and tableSize
+    const countMap = reservations.reduce((map, { restaurant, tableSize }) => {
+        const key = `${restaurant}|${tableSize}`;
+        if (!map[key]) {
+            map[key] = 0;
+        }
+        map[key]++;
+        return map;
+    }, {});
+
+    // Filter out restaurants that exceed their table capacity
+    return restaurants.filter(restaurant => {
+        const sizes = ["two_top", "four_top", "six_top"]; // Correspond to table sizes 2, 4, 6
+        const capacityLimits = [restaurant.two_top, restaurant.four_top, restaurant.six_top];
+
+        return sizes.every((size, index) => {
+            const tableSize = (index + 1) * 2; // Converts 0, 1, 2 index to 2, 4, 6 table sizes
+            if (tableSize < partySize) return true; // Skip sizes smaller than the party size
+
+            const reservationCount = countMap[`${restaurant.name}|${tableSize}`] || 0;
+            return reservationCount < capacityLimits[index]; // Check if under the limit
+        });
+    }).map(restaurant => restaurant.name); // Return the names of the filtered restaurants
+} */
+
+function countAvailableRestaurants(reservations, restaurants, partySize) {
+    // Create a map of reservations grouped by restaurant and tableSize
+    const countMap = reservations.reduce((map, { restaurant, tableSize }) => {
+        const key = `${restaurant}|${tableSize}`;
+        if (!map[key]) {
+            map[key] = 0;
+        }
+        map[key]++;
+        return map;
+    }, {});
+
+    // Filter out restaurants that exceed their table capacity or don't have an appropriate table size
+    return restaurants.filter(restaurant => {
+        const sizes = [2, 4, 6]; // Explicit table sizes
+        const capacityLimits = [restaurant.two_top, restaurant.four_top, restaurant.six_top];
+
+        // Check for availability of suitable table sizes
+        return sizes.some((tableSize, index) => {
+            if (tableSize >= partySize) { // Only consider table sizes that can accommodate the party
+                const reservationCount = countMap[`${restaurant.name}|${tableSize}`] || 0;
+                return reservationCount < capacityLimits[index]; // Check if under the limit
+            }
+            return false; // Skip sizes smaller than the party size
+        });
+    }).map(restaurant => restaurant.name); // Return the names of the filtered restaurants
+}
 
 // app.use('/api', apiRouter);
 // const { User } = require('./models');
