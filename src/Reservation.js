@@ -9,6 +9,7 @@ Reservation.init({
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
+        unique: true,
     },
     restaurant: {
         type: DataTypes.STRING,
