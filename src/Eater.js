@@ -12,12 +12,7 @@ Eater.init({
     restrictions: {
         type: DataTypes.STRING,
         allowNull: true,
-        // get() {
-        //     return this.getDataValue('restrictions').split(', ')
-        // },
-        // set(val) {
-        //     this.setDataValue('restrictions', val.join(', '));
-        // }
     },
 }, { sequelize, modelName: 'Eater' });
+
 module.exports = Eater;
