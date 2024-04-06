@@ -15,6 +15,31 @@ const twoHours = 2 * 60 * 60 * 1000 - 1 * 60 * 1000;
 
 sequelize.sync();
 
+/**
+ * Returns the list of restaurants that have available tables that fit 
+ * the party size of the group based on the restrictions of the eaters 
+ * in the group and the availability of tables at the desired time of the reservation
+ * 
+ * The request body should contain the following fields:
+ * - eaters: a comma-and-space-separated string of eater names
+ * - time: a string representing the desired time of the reservation
+ * 
+ * @param body: here's an example of the request body: 
+ * {
+        "eaters": "Scott, Elise",
+        "time": "Apr 9 2024 13:00 PST"
+    }
+ * @returns Restaurant[] - the list of restaurants that is suitable for the party
+    example:
+    [
+        "Falling Piano Brewing Co",
+        "u.to.pi.a"
+    ]
+ * 
+ * 
+ * 
+ * 
+ */
 app.get('/restaurants', async (req, res) => {
     try {
         // null check to ensure that the request has eaters
@@ -84,6 +109,31 @@ app.get('/restaurants', async (req, res) => {
     }
 });
 
+/**
+ * (attempts to) Create(s) a reservation for the given restaurant, time, and eaters
+ * Designed to be called after calling the /restaurants endpoint to ensure the restaurant 
+ * is suitable for the party's restrictions, party size and availability
+ *
+ * 
+ * The request body should contain the following fields:
+ * - eaters: a comma-and-space-separated string of eater names
+ * - time: a string representing the desired time of the reservation
+ * - restaurant: a string representing the name of the restaurant
+ * 
+ * @param body: here's an example of the request body: 
+ * {
+        "eaters": "Scott, George, Elise",
+        "time": "Apr 9 2024 15:00 PST",
+        "restaurant": "Falling Piano Brewing Co"
+    }
+ * @returns string - a confirmation message that contains the id of the reservation
+    example:
+    Reservation created with id: 47
+ * 
+ * 
+ * 
+ * 
+ */
 app.post('/reservations', async (req, res) => {
     try {
         const restaurantName = req.body.restaurant;
@@ -168,6 +218,34 @@ app.post('/reservations', async (req, res) => {
     }
 });
 
+/**
+ * Deletes the given reservation
+ * 
+ * The request body should contain the following:
+ * - id: an integer representing the id of the reservation to be deleted
+ * - eater: an optional string representing the name of the person requesting the deletion
+ * 
+ * @param body: here's an example of the request body: 
+ * {
+        "id": "45",
+        "eater":"George"
+    }
+ * @returns Reservation - the json object representation of the deleted Reservation
+ * example:
+    {
+        "id": 45,
+        "restaurant": "Falling Piano Brewing Co",
+        "eaters": "Scott, George, Elise",
+        "tableSize": 4,
+        "time": "2024-04-10 03:00:00.000 +00:00",
+        "createdAt": "2024-04-06 01:20:11.320 +00:00",
+        "updatedAt": "2024-04-06 01:20:11.320 +00:00"
+    }
+ * 
+ * 
+ * 
+ * 
+ */
 app.delete('/reservations', async (req, res) => {
     try {
         const id = req.body.id;

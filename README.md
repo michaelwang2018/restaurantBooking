@@ -1,9 +1,16 @@
 # Restaurant Booking API by Michael Wang
 
 ## Overview
-This repository is for a backend social Restaurant Booking API. It can be run locally using node, and will run on http://localhost:3000 as defined in api.js
+This repository is for a backend social Restaurant Booking API. It uses Javascript, node.js, Express, Sequelize, SQLite, jest, and supertest.
+It can be run locally using node, and will run on http://localhost:3000 as defined in server.js when you run
 
-Here's a description of the API's:
+    npm start
+
+Tests can be run using
+    
+    npm test
+
+Here's a description of the main API's:
 
 ### GET /restaurants
 The entry point! This API is designed to return a list of restaurants (max 10) that both have a table available large enough to accomodate the party size as well as accomodate the group's dietary restrictions. This endpoint expects to receive a body with a string of Eater names separated by a comma & space that represents the proposed reservation party, as well as a string datetime stamp (timezone is preferred unless you're booking for UTC). In the base test data, George is Vegan & Elise is Vegetarian, and there are no reservations.
