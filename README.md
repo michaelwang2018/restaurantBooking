@@ -21,7 +21,7 @@ Which would yield the only restaurant that has endorsements for both Vegan and V
     "Falling Piano Brewing Co"
 ]
 
-There are many failure points for this request. 
+There are a couple early failure points for this request. 
 If an eater isn't included, the request will fail with:
 
     No eaters provided
@@ -48,7 +48,7 @@ When successful, it will return a message with your reservation id like so:
 
     Reservation created with id: 2
 
-If you try booking a reservation with a nonexistent restaurant, you'll receive the following response:
+There are many possible failures in this call! If you try booking a reservation with a nonexistent restaurant, you'll receive the following response:
 
     Restaurant not found
 
@@ -111,7 +111,7 @@ To get started, run the following command in terminal:
 Surprisingly painless! (hopefully)... 
 Once all the dependencies are installed, you should be able to run the either of the following commands to start the local server:
     npm start
-    node src/index.js
+    node src/server.js
     
 The database should already be seeded with test data from the seeders folder. If you feel like adding your own, you can replace the data in the files in the seeders folder and run the following command to put them in the DB:
     sequelize db:seed:all
@@ -121,7 +121,7 @@ For viewing & interacting with the database while testing, I'd recommend either 
 To run tests, run the following command:
     npm test
 
-
+For any questions, reach out to michaelwang219@gmail.com
 
 Original Project Description:
 

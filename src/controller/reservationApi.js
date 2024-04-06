@@ -1,4 +1,4 @@
-const Reservation = require('../Reservation');
+const Reservation = require('../eservation');
 
 async function createReservationController(req, res) {
     try {

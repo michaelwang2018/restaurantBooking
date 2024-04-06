@@ -192,6 +192,17 @@ app.delete('/reservations', async (req, res) => {
     }
 });
 
+/**
+ * Returns the list of restaurants with available tables that fits the party size 
+ * based on existing reservations and number of tables each restaurant has. 
+ * Helper method for /restaurants GET endpoint.
+ * 
+ * 
+ * @param reservations: Reservation[]
+ * @param restaurants: Restaurant[]
+ * @param partySize: number
+ * @returns restaurant[] - the restaurants that have available suitable tables
+ */
 function countAvailableRestaurants(reservations, restaurants, partySize) {
     // Create a map of reservations grouped by restaurant and tableSize
     const countMap = reservations.reduce((map, { restaurant, tableSize }) => {
@@ -219,6 +230,17 @@ function countAvailableRestaurants(reservations, restaurants, partySize) {
     }).map(restaurant => restaurant.name); // Return the names of the filtered restaurants
 }
 
+/**
+ * Returns the smallest available table size that fits the party based on the given restaurant, 
+ * existing reservations, and party size. Helper method for /reservations POST endpoint.
+ * 
+ * It returns 0 if no suitable table size is available
+ * 
+ * @param restaurant: Restaurant
+ * @param reservations: Reservation[]
+ * @param partySize: number
+ * @returns number - the smallest available table size that fits the party
+ */
 function findMinimumAvailableTableSize(restaurant, reservations, partySize) {
     // Aggregate reservations by table size
     const reservationCounts = reservations.reduce((counts, reservation) => {
