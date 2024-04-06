@@ -3,18 +3,17 @@ const express = require('express');
 const sequelize = require('./db');
 const { Op } = require('sequelize');
 const Eater = require('./eater');
-const Restaurant = require('./restaurant'); // Fix: Change the import statement to match the correct casing
+const Restaurant = require('./restaurant');
 const Reservation = require('./Reservation');
 
 
 const app = express();
 app.use(express.json());
 
-const twoHours = 2 * 60 * 60 * 1000 - 1 * 60 * 1000; // Two hours in milliseconds - 1 minute in milliseconds to allow for back to back reservations
+// Two hours in milliseconds - 1 minute in milliseconds to allow for back to back reservations
+const twoHours = 2 * 60 * 60 * 1000 - 1 * 60 * 1000; 
 
-sequelize.sync().then(() => {
-    // console.log('Database synced');
-});
+sequelize.sync();
 
 app.get('/restaurants', async (req, res) => {
     try {
@@ -90,8 +89,7 @@ app.post('/reservations', async (req, res) => {
         const restaurantName = req.body.restaurant;
         const eaterNames = req.body.eaters.split(', ');
 
-        // Check if the restaurant exists 
-        // (this check and the eaters check aren't really necessary if we're assuming this endpoint is
+        // Check if the restaurant exists (this check and the eaters check aren't really necessary if we're assuming this endpoint is
         // called after the /restaurants endpoint and we assume the Eater and Restaurant didn't get deleted, but checking to be safe)
         const restaurant = await Restaurant.findOne({ where: { name: restaurantName } });
         if (!restaurant) {
@@ -136,15 +134,14 @@ app.post('/reservations', async (req, res) => {
         }
 
 
-        // Check existing reservations to confirm table size is available
-        // retrieve the reservations for those restaurants that overlap with the time
+        // Check existing reservations that overlap with the proposed reservation time to confirm suitable table size is available at the restaurant
         const reservations = await Reservation.findAll({
             where: {
                 restaurant: restaurantName,
                 time: {
                     [Op.and]: {
-                        [Op.gte]: new Date(targetTime - twoHours), // 2 hours before the target time
-                        [Op.lte]: new Date(targetTime + twoHours) // 2 hours after the target time
+                        [Op.gte]: new Date(targetTime - twoHours),
+                        [Op.lte]: new Date(targetTime + twoHours)
                     }
                 }
             }
