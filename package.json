@@ -4,7 +4,7 @@
   "description": "Restaurant Booking API with a social Twist",
   "main": "index.js",
   "scripts": {
-    "start": "node src/api.js",
+    "start": "node src/server.js",
     "test": "jest"
   },
   "repository": {
