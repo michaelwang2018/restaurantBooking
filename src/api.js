@@ -349,7 +349,7 @@ function findMinimumAvailableTableSize(restaurant, reservations, partySize) {
     return 0;
 }
 
-// APIs for testing only
+// The below APIs are for testing purposes only
 app.post('/eaters', async (req, res) => {
     try {
         await Eater.create(req.body);

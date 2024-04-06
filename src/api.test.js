@@ -196,6 +196,8 @@ describe('given the /restaurants endpoint', () => {
         const responseJson = JSON.parse(response.text);
         expect(responseJson.length).toBe(0);
     });
+
+    // TODO: more tests to be added
     
 });
 
@@ -206,8 +208,10 @@ describe('given the /reservations endpoint', () => {
         "restaurant": "Falling Piano Brewing Co"
     }
 
+    // TODO: more tests to be added
 });
 
+// tests for the less relevant testing endpoints
 describe('given the /eaters endpoint', () => {
     it('should return all the eaters', async () => {
         const response = await request(app)
