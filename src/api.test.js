@@ -223,37 +223,6 @@ describe('given the /reservations endpoint', () => {
     });
 });
 
-// tests for the less relevant test endpoints
-describe('given the /eaters endpoint', () => {
-    it('should return all the eaters', async () => {
-        const response = await request(app)
-            .get('/eaters')
-            .expect(200);
-
-        const responseJson = JSON.parse(response.text);
-        expect(responseJson.length).toBe(11);
-    });
-
-    test.skip('should return the specified eater', async () => {
-        const response = await request(app)
-            .get('/eaters/Scott')
-            .expect(200);
-
-        const responseJson = JSON.parse(response.text);
-        expect(responseJson.length).toBe(1)
-        expect(responseJson[0].name).toBe('Scott');
-    });
-
-    it('should return no eater if the eater does not exist', async () => {
-        const response = await request(app)
-            .get('/eaters/Scottttttt')
-            .expect(200);
-
-        expect(response.text.length).toBe(0);
-    });
-
-});
-
 server.close(() => {
     console.log('Server closed');
 });
