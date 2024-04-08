@@ -1,5 +1,5 @@
 const request = require('supertest');
-const { app, filterAvailableRestaurants, findMinimumAvailableTableSize } = require('../api'); 
+const { app, filterAvailableRestaurants, findMinimumAvailableTableSize } = require('../src/api'); 
 
 const PORT = 3001;
 
