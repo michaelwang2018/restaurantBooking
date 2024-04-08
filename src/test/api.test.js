@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../api'); 
+const { app, filterAvailableRestaurants, findMinimumAvailableTableSize } = require('../api'); 
 
 const PORT = 3001;
 
@@ -228,6 +228,180 @@ describe('given the /reservations endpoint', () => {
             .expect(400);
 
         expect(response.text).toContain('Failed to delete reservation. No id provided');
+    });
+});
+
+describe('given the helper function filterAvailableRestaurants', () => {
+    it('should return all restaurants with big enough tables when no reservations exist ', () => {
+        const restaurants = [
+            { name: "The Great Eatery", two_top: 20, four_top: 2, six_top: 0 },
+            { name: "Pasta Central", two_top: 4, four_top: 2, six_top: 1 },
+            { name: "Burger House", two_top: 10, four_top: 0, six_top: 3 }
+        ];
+        
+        const reservations = [];
+        
+        const partySize = 1;
+
+        const availableRestaurants = filterAvailableRestaurants(reservations, restaurants, partySize);
+
+        expect(availableRestaurants.length).toBe(3);
+        expect(availableRestaurants).toContain("Pasta Central");
+        expect(availableRestaurants).toContain("Burger House");
+        expect(availableRestaurants).toContain("The Great Eatery");
+
+    });
+    
+    it('should return the correct restaurants that are available for the given party size ', () => {
+        const restaurants = [
+            { name: "The Great Eatery", two_top: 20, four_top: 2, six_top: 0 },
+            { name: "Pasta Central", two_top: 4, four_top: 2, six_top: 1 },
+            { name: "Burger House", two_top: 10, four_top: 0, six_top: 3 }
+        ];
+        
+        const reservations = [
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "Pasta Central", tableSize: 4 },
+            { restaurant: "Pasta Central", tableSize: 4 }
+        ];
+        
+        const partySize = 4;
+
+        const availableRestaurants = filterAvailableRestaurants(reservations, restaurants, partySize);
+
+        expect(availableRestaurants.length).toBe(2);
+        expect(availableRestaurants).toContain("Pasta Central");
+        expect(availableRestaurants).toContain("Burger House");
+        expect(availableRestaurants).not.toContain("The Great Eatery");
+
+    });
+
+    it('should return the no restaurants since no suitable tables are available', () => {
+        const restaurants = [
+            { name: "The Great Eatery", two_top: 20, four_top: 2, six_top: 0 },
+            { name: "Pasta Central", two_top: 4, four_top: 2, six_top: 1 },
+            { name: "Burger House", two_top: 10, four_top: 0, six_top: 0 }
+        ];
+        
+        const reservations = [
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "Pasta Central", tableSize: 6 },
+            { restaurant: "Pasta Central", tableSize: 4 },
+            { restaurant: "Pasta Central", tableSize: 4 },
+        ];
+
+        const partySize = 4;
+
+        const availableRestaurants = filterAvailableRestaurants(restaurants, reservations, partySize);
+
+        expect(availableRestaurants.length).toBe(0);
+    });
+});
+
+describe('given the helper function findMinimumAvailableTableSize', () => {
+    it('should return the minimum table size, 4, that is available and fits the party', () => {
+        const restaurant = {
+            name: "The Great Eatery",
+            two_top: 5,
+            four_top: 3,
+            six_top: 2
+        };
+        
+        const reservations = [
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 2 },
+            { restaurant: "The Great Eatery", tableSize: 6 }
+        ];
+        
+        const partySize = 3;
+        
+        const minimumTableSize = findMinimumAvailableTableSize(restaurant, reservations, partySize);
+        expect(minimumTableSize).toBe(4);
+
+    });
+
+    it('should return a table size of 6 when all 4 tops are taken', () => {
+        const restaurant = {
+            name: "The Great Eatery",
+            two_top: 5,
+            four_top: 3,
+            six_top: 2
+        };
+        
+        const reservations = [
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 2 },
+            { restaurant: "The Great Eatery", tableSize: 6 },
+            { restaurant: "The Great Eatery", tableSize: 4 }
+        ];
+        
+        const partySize = 3;
+        
+        const minimumTableSize = findMinimumAvailableTableSize(restaurant, reservations, partySize);
+        expect(minimumTableSize).toBe(6);
+
+    });
+
+    it('should return 0 when no tables are available', () => {
+        const restaurant = {
+            name: "The Great Eatery",
+            two_top: 5,
+            four_top: 3,
+            six_top: 2
+        };
+        
+        const reservations = [
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 2 },
+            { restaurant: "The Great Eatery", tableSize: 6 },
+            { restaurant: "The Great Eatery", tableSize: 4 },
+            { restaurant: "The Great Eatery", tableSize: 6 }
+        ];
+        
+        const partySize = 3;
+        
+        const minimumTableSize = findMinimumAvailableTableSize(restaurant, reservations, partySize);
+        expect(minimumTableSize).toBe(0);
+
+    });
+
+    it('should return the minimum table size of 2 that fits the party', () => {
+        const restaurant = {
+            name: "The Great Eatery",
+            two_top: 1,
+            four_top: 0,
+            six_top: 0
+        };
+        
+        const reservations = [];
+        
+        const partySize = 1;
+        
+        const minimumTableSize = findMinimumAvailableTableSize(restaurant, reservations, partySize);
+        expect(minimumTableSize).toBe(2);
+
+    });
+
+    it('should return 0 when tables are available, but the party size does not fit any table', () => {
+        const restaurant = {
+            name: "The Great Eatery",
+            two_top: 1,
+            four_top: 1,
+            six_top: 1
+        };
+        
+        const reservations = [];
+        
+        const partySize = 7;
+        
+        const minimumTableSize = findMinimumAvailableTableSize(restaurant, reservations, partySize);
+        expect(minimumTableSize).toBe(0);
+
     });
 });
 

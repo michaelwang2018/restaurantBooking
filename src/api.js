@@ -4,7 +4,7 @@ const sequelize = require('./db');
 const { Op } = require('sequelize');
 const Eater = require('./models/Eater');
 const Restaurant = require('./models/Restaurant');
-const Reservation = require('./models/Reservation');
+const Reservation = require('./models/reservation');
 
 
 const app = express();
@@ -98,7 +98,7 @@ app.get('/restaurants', async (req, res) => {
             }
         });
 
-        const availableRestaurants = countAvailableRestaurants(reservations, restaurants, partySize);
+        const availableRestaurants = filterAvailableRestaurants(reservations, restaurants, partySize);
 
         // return the restaurants that have availability
         return res.json(availableRestaurants);
@@ -285,7 +285,7 @@ app.delete('/reservations', async (req, res) => {
  * @param partySize: number
  * @returns restaurant[] - the restaurants that have available suitable tables
  */
-function countAvailableRestaurants(reservations, restaurants, partySize) {
+function filterAvailableRestaurants(reservations, restaurants, partySize) {
     // Create a map of reservations grouped by restaurant and tableSize
     const countMap = reservations.reduce((map, { restaurant, tableSize }) => {
         const key = `${restaurant}|${tableSize}`;
@@ -356,4 +356,4 @@ function findMinimumAvailableTableSize(restaurant, reservations, partySize) {
     return 0;
 }
 
-module.exports = app;
+module.exports = { app, filterAvailableRestaurants, findMinimumAvailableTableSize};

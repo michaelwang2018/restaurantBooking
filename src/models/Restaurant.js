@@ -38,4 +38,5 @@ Restaurant.init({
         allowNull: false,
     }
 }, { sequelize, modelName: 'Restaurant' });
+
 module.exports = Restaurant;
