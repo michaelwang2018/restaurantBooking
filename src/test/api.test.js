@@ -1,7 +1,7 @@
 const request = require('supertest');
-const app = require('./api'); 
+const app = require('../api'); 
 
-const PORT = 3000;
+const PORT = 3001;
 
 const server = app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
@@ -139,7 +139,7 @@ describe('given the /reservations endpoint', () => {
         // Create the reservation
         const requestBody = {
             "eaters": "Scott, George, Elise",
-            "time": "Apr 21 2024 19:00 PST",
+            "time": "Apr 23 2024 19:00 PST",
             "restaurant": "Falling Piano Brewing Co"
         }
 
@@ -220,6 +220,14 @@ describe('given the /reservations endpoint', () => {
             .expect(400);
 
         expect(response.text).toBe('One or more eaters have conflicting reservations');
+    });
+
+    it('should fail to create a reservation when no body or id is provided', async () => {
+        const response = await request(app)
+            .delete('/reservations')
+            .expect(400);
+
+        expect(response.text).toContain('Failed to delete reservation. No id provided');
     });
 });
 

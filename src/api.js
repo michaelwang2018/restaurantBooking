@@ -2,9 +2,9 @@
 const express = require('express');
 const sequelize = require('./db');
 const { Op } = require('sequelize');
-const Eater = require('./eater');
-const Restaurant = require('./restaurant');
-const Reservation = require('./Reservation');
+const Eater = require('./models/Eater');
+const Restaurant = require('./models/Restaurant');
+const Reservation = require('./models/Reservation');
 
 
 const app = express();
@@ -249,6 +249,9 @@ app.post('/reservations', async (req, res) => {
 app.delete('/reservations', async (req, res) => {
     try {
         const id = req.body.id;
+        if (!id) {
+            return res.status(400).send('Failed to delete reservation. No id provided');
+        }
         const reservation = await Reservation.findOne({ where: {id: id}});
         if (!reservation) {
             return res.status(410).send('Reservation does not exist');
