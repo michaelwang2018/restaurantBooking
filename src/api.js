@@ -250,9 +250,13 @@ app.delete('/reservations', async (req, res) => {
     try {
         const id = req.body.id;
         const reservation = await Reservation.findOne({ where: {id: id}});
+        if (!reservation) {
+            return res.status(410).send('Reservation does not exist');
+        }
 
         // preventing unauthorized deletion of reservations
         if (req.body.eater !== null && req.body.eater !== undefined) {
+            console.log(reservation);
             const eaterNames = reservation.eaters.split(', ');
             const isPresent = eaterNames.some(name => name.includes(req.body.eater));
             if (!isPresent) {
